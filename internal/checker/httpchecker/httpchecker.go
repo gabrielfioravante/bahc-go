@@ -18,11 +18,12 @@ const (
 )
 
 type HttpCheckerConfig struct {
-	ID            string
-	Url           string
-	Method        HttpMethod
-	Authorization string
-	Timeout       time.Duration
+	ID            string        `yaml:"id"`
+	Url           string        `yaml:"url"`
+	Method        HttpMethod    `yaml:"host"`
+	Authorization string        `yaml:"authorization"`
+	Timeout       time.Duration `yaml:"timeout"`
+	Interval      time.Duration `yaml:"interval"`
 }
 
 type HttpChecker struct {
@@ -31,7 +32,7 @@ type HttpChecker struct {
 	req    *http.Request
 }
 
-func (hc *HttpChecker) Check() (checker.Result, error) {
+func (hc *HttpChecker) Run() (checker.Result, error) {
 	res, err := hc.client.Do(hc.req)
 	var checkerResult checker.Result
 
@@ -54,6 +55,10 @@ func (hc *HttpChecker) Check() (checker.Result, error) {
 
 func (hc *HttpChecker) GetID() string {
 	return hc.config.ID
+}
+
+func (hc *HttpChecker) GetInterval() time.Duration {
+	return hc.config.Interval
 }
 
 func NewHttpChecker(config *HttpCheckerConfig) checker.Checker {

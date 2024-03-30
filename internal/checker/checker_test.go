@@ -3,6 +3,7 @@ package checker
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +13,7 @@ type MockChecker struct {
 	error  string
 }
 
-func (mc *MockChecker) Check() (Result, error) {
+func (mc *MockChecker) Run() (Result, error) {
 	return Result{Message: "test message", Success: true}, nil
 }
 
@@ -20,7 +21,11 @@ func (mc *MockChecker) GetID() string {
 	return "Mock ID"
 }
 
-func TestExecuteChecker(t *testing.T) {
+func (mc *MockChecker) GetInterval() time.Duration {
+	return 0
+}
+
+func TestCheck(t *testing.T) {
 	mockChecker := &MockChecker{}
 
 	resultHandler := func(r Result) error {
@@ -33,7 +38,12 @@ func TestExecuteChecker(t *testing.T) {
 		return nil
 	}
 
-	executeChecker(mockChecker, resultHandler, errorHandler)
+	handlers := &Handlers{
+		Result: resultHandler,
+		Error:  errorHandler,
+	}
+
+	check(mockChecker, handlers)
 
 	assert.Equal(t, mockChecker.result, "test message", "result message mismatch")
 	assert.Equal(t, mockChecker.error, "test error", "error message mismatch")
