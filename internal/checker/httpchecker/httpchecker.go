@@ -10,26 +10,38 @@ import (
 
 const defaultTimeout = 10 * time.Second
 
-type HttpMethod string
-
-const (
-	GET  HttpMethod = "GET"
-	POST            = "POST"
-)
-
-type HttpCheckerConfig struct {
-	ID            string        `yaml:"id"`
-	Url           string        `yaml:"url"`
-	Method        HttpMethod    `yaml:"host"`
-	Authorization string        `yaml:"authorization"`
-	Timeout       time.Duration `yaml:"timeout"`
-	Interval      time.Duration `yaml:"interval"`
-}
-
 type HttpChecker struct {
 	config *HttpCheckerConfig
 	client *http.Client
 	req    *http.Request
+}
+
+func NewHttpChecker(config *HttpCheckerConfig) checker.Checker {
+	req, err := http.NewRequest(string(config.Method), config.Url, nil)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if config.Authorization != "" {
+		req.Header.Set("Authorization", config.Authorization)
+	}
+
+	timeout := defaultTimeout
+
+	if config.Timeout > 0 {
+		timeout = config.Timeout
+	}
+
+	client := &http.Client{
+		Timeout: timeout,
+	}
+
+	return &HttpChecker{
+		config: config,
+		req:    req,
+		client: client,
+	}
 }
 
 func (hc *HttpChecker) Run() (checker.Result, error) {
@@ -59,32 +71,4 @@ func (hc *HttpChecker) GetID() string {
 
 func (hc *HttpChecker) GetInterval() time.Duration {
 	return hc.config.Interval
-}
-
-func NewHttpChecker(config *HttpCheckerConfig) checker.Checker {
-	req, err := http.NewRequest(string(config.Method), config.Url, nil)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if config.Authorization != "" {
-		req.Header.Set("Authorization", config.Authorization)
-	}
-
-	timeout := defaultTimeout
-
-	if config.Timeout > 0 {
-		timeout = config.Timeout
-	}
-
-	client := &http.Client{
-		Timeout: timeout,
-	}
-
-	return &HttpChecker{
-		config: config,
-		req:    req,
-		client: client,
-	}
 }
