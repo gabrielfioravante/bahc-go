@@ -16,6 +16,10 @@ func (mc *MockChecker) Check() (Result, error) {
 	return Result{Message: "test message", Success: true}, nil
 }
 
+func (mc *MockChecker) GetID() string {
+	return "Mock ID"
+}
+
 func TestExecuteChecker(t *testing.T) {
 	mockChecker := &MockChecker{}
 
